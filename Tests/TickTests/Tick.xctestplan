@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "886D1A0C-6419-495B-87BB-270E8FA55007",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "FieldValidatorTests",
+        "name" : "FieldValidatorTests"
+      }
+    }
+  ],
+  "version" : 1
+}
