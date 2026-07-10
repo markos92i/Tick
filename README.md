@@ -12,7 +12,7 @@ A lightweight validation library for SwiftUI forms. Declare rules per field, val
 
 - **Declarative rules** — Define validations as an array of `Rule` cases
 - **Single entry point** — `Tick.validate(_:validations:)` returns only failed rules
-- **Smart empty handling** — Non-mandatory empty fields pass automatically
+- **Smart empty handling** — Non-required empty fields pass automatically
 - **Built-in validators** — IBAN (ISO 13616), DNI/NIE, social security (NASS), postal codes, URLs
 - **Regex patterns** — Name, email, phone, or custom regex
 - **Extensible** — Add custom validators with a simple closure
@@ -38,7 +38,7 @@ Or in Xcode: **File → Add Package Dependencies** → paste the repository URL.
 import Tick
 
 let email = "user@example"
-let failures = Tick.validate(email, validations: [.mandatory, .matches(.email)])
+let failures = Tick.validate(email, validations: [.required, .matches(.email)])
 
 if failures.isEmpty {
     // Valid
@@ -51,7 +51,7 @@ if failures.isEmpty {
 
 | Rule | Description |
 |------|-------------|
-| `.mandatory` | Field must not be empty |
+| `.required` | Field must not be empty |
 | `.min(n)` | Minimum character count |
 | `.max(n)` | Maximum character count |
 | `.matches(.email)` | Email format |
@@ -76,14 +76,14 @@ struct SignUpViewModel {
     func validateForm() -> [String: [Rule]] {
         var errors: [String: [Rule]] = [:]
 
-        let emailErrors = Tick.validate(email, validations: [.mandatory, .matches(.email)])
+        let emailErrors = Tick.validate(email, validations: [.required, .matches(.email)])
         if !emailErrors.isEmpty { errors["email"] = emailErrors }
 
-        let passErrors = Tick.validate(password, validations: [.mandatory, .min(8)])
+        let passErrors = Tick.validate(password, validations: [.required, .min(8)])
         if !passErrors.isEmpty { errors["password"] = passErrors }
 
         let confirmErrors = Tick.validate(confirmPassword, validations: [
-            .mandatory, .equalTo { self.password }
+            .required, .equalTo { self.password }
         ])
         if !confirmErrors.isEmpty { errors["confirm"] = confirmErrors }
 
@@ -96,7 +96,7 @@ struct SignUpViewModel {
 
 ```swift
 let iban = "ES91 2100 0418 4502 0005 1332"
-let result = Tick.validate(iban, validations: [.mandatory, .iban])
+let result = Tick.validate(iban, validations: [.required, .iban])
 // result == [] → valid
 ```
 
@@ -104,7 +104,7 @@ let result = Tick.validate(iban, validations: [.mandatory, .iban])
 
 ```swift
 let dni = "12345678Z"
-let result = Tick.validate(dni, validations: [.mandatory, .nationalID(.es)])
+let result = Tick.validate(dni, validations: [.required, .nationalID(.es)])
 ```
 
 ### Custom validator
@@ -112,29 +112,29 @@ let result = Tick.validate(dni, validations: [.mandatory, .nationalID(.es)])
 ```swift
 let age = "17"
 let result = Tick.validate(age, validations: [
-    .mandatory,
+    .required,
     .numeric,
     .custom({ Int($0).map { $0 >= 18 } ?? false }, "Must be 18+")
 ])
 ```
 
-### Non-mandatory fields
+### Non-required fields
 
-Empty non-mandatory fields always pass — no unnecessary error messages:
+Empty non-required fields always pass — no unnecessary error messages:
 
 ```swift
 let nickname = ""
 let result = Tick.validate(nickname, validations: [.min(3), .max(20)])
-// result == [] → valid (empty + not mandatory = skip)
+// result == [] → valid (empty + not required = skip)
 ```
 
 ## How It Works
 
 `Tick.validate` follows a simple flow:
 
-1. If the field is **empty and not mandatory** → return `[]` (pass)
-2. If the field is **empty and mandatory** → return `[.mandatory]`
-3. Otherwise → run all rules (except `.mandatory`) and return the ones that fail
+1. If the field is **empty and not required** → return `[]` (pass)
+2. If the field is **empty and required** → return `[.required]`
+3. Otherwise → run all rules (except `.required`) and return the ones that fail
 
 This means you never get a `.min(3)` failure on an empty optional field.
 

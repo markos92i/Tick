@@ -7,7 +7,8 @@ import Foundation
 
 /// A validation rule that can be applied to a form field.
 public enum Rule: Sendable {
-    case mandatory
+    case required
+    case requiredIf(@Sendable () -> Bool)
     case min(Int)
     case max(Int)
     case matches(Pattern)

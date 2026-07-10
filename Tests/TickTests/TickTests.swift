@@ -10,26 +10,26 @@ struct TickTests {
         #expect(errors.isEmpty)
     }
 
-    @Test func emptyMandatoryField_onlyReturnsMandatory() {
-        let errors = Tick.validate("", validations: [.mandatory, .min(3), .matches(.email)])
+    @Test func emptyRequiredField_onlyReturnsRequired() {
+        let errors = Tick.validate("", validations: [.required, .min(3), .matches(.email)])
         #expect(errors.count == 1)
-        #expect(errors.first.map { if case .mandatory = $0 { true } else { false } } == true)
+        #expect(errors.first.map { if case .required = $0 { true } else { false } } == true)
     }
 
-    @Test func filledMandatoryField_skipsMandatoryRule() {
-        let errors = Tick.validate("hello", validations: [.mandatory])
+    @Test func filledRequiredField_skipsRequiredRule() {
+        let errors = Tick.validate("hello", validations: [.required])
         #expect(errors.isEmpty)
     }
 
-    // MARK: - Mandatory
+    // MARK: - Required
 
-    @Test func mandatory_empty_fails() {
-        let errors = Tick.validate("", validations: [.mandatory])
+    @Test func required_empty_fails() {
+        let errors = Tick.validate("", validations: [.required])
         #expect(!errors.isEmpty)
     }
 
-    @Test func mandatory_filled_passes() {
-        let errors = Tick.validate("x", validations: [.mandatory])
+    @Test func required_filled_passes() {
+        let errors = Tick.validate("x", validations: [.required])
         #expect(errors.isEmpty)
     }
 
@@ -37,13 +37,13 @@ struct TickTests {
 
     @Test(arguments: [("ab", 3, true), ("abc", 3, false), ("abcd", 3, false)])
     func minLength(value: String, min: Int, shouldFail: Bool) {
-        let errors = Tick.validate(value, validations: [.mandatory, .min(min)])
+        let errors = Tick.validate(value, validations: [.required, .min(min)])
         #expect(errors.isEmpty != shouldFail)
     }
 
     @Test(arguments: [("abcdef", 5, true), ("abcde", 5, false), ("abc", 5, false)])
     func maxLength(value: String, max: Int, shouldFail: Bool) {
-        let errors = Tick.validate(value, validations: [.mandatory, .max(max)])
+        let errors = Tick.validate(value, validations: [.required, .max(max)])
         #expect(errors.isEmpty != shouldFail)
     }
 
@@ -165,13 +165,13 @@ struct TickTests {
 
     @Test(arguments: ["ES5930042214135997744874", "ES59 3004 2214 1359 9774 4874", "DE89370400440532013000", "GB29NWBK60161331926819"])
     func validIBAN(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .iban])
+        let errors = Tick.validate(value, validations: [.required, .iban])
         #expect(errors.isEmpty)
     }
 
     @Test(arguments: ["ES5930042214135997344874", "ES123", "INVALIDIBAN", "DE89370400440532013001"])
     func invalidIBAN(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .iban])
+        let errors = Tick.validate(value, validations: [.required, .iban])
         #expect(!errors.isEmpty)
     }
 
@@ -184,13 +184,13 @@ struct TickTests {
 
     @Test(arguments: ["08988731D", "08988731d", "12345678Z", "X1234567L", "Y1234567X", "Z1234567R"])
     func validNationalID(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .nationalID(.es)])
+        let errors = Tick.validate(value, validations: [.required, .nationalID(.es)])
         #expect(errors.isEmpty)
     }
 
     @Test(arguments: ["08988731A", "12345678A", "X1234567A", "123", "ABCDEFGHI"])
     func invalidNationalID(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .nationalID(.es)])
+        let errors = Tick.validate(value, validations: [.required, .nationalID(.es)])
         #expect(!errors.isEmpty)
     }
 
@@ -198,13 +198,13 @@ struct TickTests {
 
     @Test(arguments: ["281234567840"])
     func validSocialSecurity(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .socialSecurity(.es)])
+        let errors = Tick.validate(value, validations: [.required, .socialSecurity(.es)])
         #expect(errors.isEmpty)
     }
 
     @Test(arguments: ["281234567843", "123", "ABCDEFGHIJKL", "000000000000"])
     func invalidSocialSecurity(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .socialSecurity(.es)])
+        let errors = Tick.validate(value, validations: [.required, .socialSecurity(.es)])
         #expect(!errors.isEmpty)
     }
 
@@ -212,13 +212,13 @@ struct TickTests {
 
     @Test(arguments: ["28001", "08080", "01001", "52001"])
     func validPostalCode(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .postalCode(.es)])
+        let errors = Tick.validate(value, validations: [.required, .postalCode(.es)])
         #expect(errors.isEmpty)
     }
 
     @Test(arguments: ["00001", "53001", "1234", "ABCDE", "280010"])
     func invalidPostalCode(value: String) {
-        let errors = Tick.validate(value, validations: [.mandatory, .postalCode(.es)])
+        let errors = Tick.validate(value, validations: [.required, .postalCode(.es)])
         #expect(!errors.isEmpty)
     }
 
@@ -237,12 +237,12 @@ struct TickTests {
     // MARK: - Multiple rules
 
     @Test func multipleRules_allFailing() {
-        let errors = Tick.validate("a", validations: [.mandatory, .min(3), .matches(.email)])
-        #expect(errors.count == 2) // min + email (mandatory passes because non-empty)
+        let errors = Tick.validate("a", validations: [.required, .min(3), .matches(.email)])
+        #expect(errors.count == 2) // min + email (required passes because non-empty)
     }
 
     @Test func multipleRules_somePassing() {
-        let errors = Tick.validate("abc", validations: [.mandatory, .min(3), .matches(.email)])
+        let errors = Tick.validate("abc", validations: [.required, .min(3), .matches(.email)])
         #expect(errors.count == 1) // only email fails
     }
 }

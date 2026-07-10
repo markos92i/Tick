@@ -10,21 +10,38 @@ public struct Tick {
     /// Validates a value against a list of validation rules.
     /// Returns only the rules that failed.
     public static func validate(_ value: String, validations: [Rule]) -> [Rule] {
-        let isMandatory = validations.contains { if case .mandatory = $0 { true } else { false } }
+        let isRequired = validations.contains { rule in
+            switch rule {
+            case .required: true
+            case .requiredIf(let condition): condition()
+            default: false
+            }
+        }
 
-        // Empty + not mandatory → nothing to validate
-        if !isMandatory && value.isEmpty { return [] }
+        // Empty + not required → nothing to validate
+        if !isRequired && value.isEmpty { return [] }
 
-        // Empty + mandatory → only mandatory fails
-        if value.isEmpty { return [.mandatory] }
+        // Empty + required → only required fails
+        if value.isEmpty {
+            // Return the same case that was passed in
+            let failedRule = validations.first { rule in
+                switch rule {
+                case .required: true
+                case .requiredIf: true
+                default: false
+                }
+            }
+            return [failedRule ?? .required]
+        }
 
-        // Non-empty → run all rules except mandatory
+        // Non-empty → run all rules except required
         return validations.filter { rule in
             switch rule {
-            case .mandatory:                false
+            case .required:     false
+            case .requiredIf:               false
             case .min(let count):           value.count < count
             case .max(let count):           value.count > count
-            case .matches(let regex):       !regex.matches(value)
+            case .matches(let pattern):     !pattern.matches(value)
             case .equalTo(let provider):    value != provider()
             case .iban:                     !IBANValidator.validate(value)
             case .nationalID(let country):  !IDValidator.validate(value, country: country)
