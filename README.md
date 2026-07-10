@@ -10,7 +10,7 @@ A lightweight validation library for SwiftUI forms. Declare rules per field, val
 
 ## Features
 
-- **Declarative rules** — Define validations as an array of `FieldType` cases
+- **Declarative rules** — Define validations as an array of `Rule` cases
 - **Single entry point** — `Tick.validate(_:validations:)` returns only failed rules
 - **Smart empty handling** — Non-mandatory empty fields pass automatically
 - **Built-in validators** — IBAN (ISO 13616), DNI/NIE, social security (NASS), postal codes, URLs
@@ -73,8 +73,8 @@ if failures.isEmpty {
 
 ```swift
 struct SignUpViewModel {
-    func validateForm() -> [String: [FieldType]] {
-        var errors: [String: [FieldType]] = [:]
+    func validateForm() -> [String: [Rule]] {
+        var errors: [String: [Rule]] = [:]
 
         let emailErrors = Tick.validate(email, validations: [.mandatory, .matches(.email)])
         if !emailErrors.isEmpty { errors["email"] = emailErrors }

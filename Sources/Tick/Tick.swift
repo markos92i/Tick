@@ -9,7 +9,7 @@ public struct Tick {
 
     /// Validates a value against a list of validation rules.
     /// Returns only the rules that failed.
-    public static func validate(_ value: String, validations: [FieldType]) -> [FieldType] {
+    public static func validate(_ value: String, validations: [Rule]) -> [Rule] {
         let isMandatory = validations.contains { if case .mandatory = $0 { true } else { false } }
 
         // Empty + not mandatory → nothing to validate
@@ -25,13 +25,11 @@ public struct Tick {
             case .min(let count):           value.count < count
             case .max(let count):           value.count > count
             case .matches(let regex):       !regex.matches(value)
-            case .url:                      !URLValidator.validate(value)
-            case .numeric:                  !value.allSatisfy(\.isNumber)
             case .equalTo(let provider):    value != provider()
             case .iban:                     !IBANValidator.validate(value)
             case .nationalID(let country):  !IDValidator.validate(value, country: country)
             case .socialSecurity(let c):    !SocialSecurityValidator.validate(value, country: c)
-            case .postalCode(let country):  !PostalCodeValidator.validate(value, country: country)
+            case .postalCode(let c, let p): !PostalCodeValidator.validate(value, country: c, province: p)
             case .custom(let predicate, _): predicate(value)
             }
         }

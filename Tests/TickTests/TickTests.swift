@@ -115,18 +115,18 @@ struct TickTests {
 
     @Test(arguments: ["https://example.com", "http://sub.domain.org/path", "https://a.io"])
     func validURL(value: String) {
-        let errors = Tick.validate(value, validations: [.url])
+        let errors = Tick.validate(value, validations: [.matches(.url)])
         #expect(errors.isEmpty)
     }
 
     @Test(arguments: ["not-a-url", "ftp://example.com", "https://", "example.com"])
     func invalidURL(value: String) {
-        let errors = Tick.validate(value, validations: [.url])
+        let errors = Tick.validate(value, validations: [.matches(.url)])
         #expect(!errors.isEmpty)
     }
 
     @Test func urlOptionalEmpty_passes() {
-        let errors = Tick.validate("", validations: [.url])
+        let errors = Tick.validate("", validations: [.matches(.url)])
         #expect(errors.isEmpty)
     }
 
@@ -134,13 +134,13 @@ struct TickTests {
 
     @Test(arguments: ["12345", "0", "9999999"])
     func validNumeric(value: String) {
-        let errors = Tick.validate(value, validations: [.numeric])
+        let errors = Tick.validate(value, validations: [.matches(.numeric)])
         #expect(errors.isEmpty)
     }
 
     @Test(arguments: ["12a45", "hello", "12.5", "12 34"])
     func invalidNumeric(value: String) {
-        let errors = Tick.validate(value, validations: [.numeric])
+        let errors = Tick.validate(value, validations: [.matches(.numeric)])
         #expect(!errors.isEmpty)
     }
 
