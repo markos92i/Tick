@@ -245,4 +245,166 @@ struct TickTests {
         let errors = Tick.validate("abc", validations: [.required, .min(3), .matches(.email)])
         #expect(errors.count == 1) // only email fails
     }
+
+    // MARK: - CharacterSet (.is)
+
+    @Test(arguments: ["12345", "0", "999"])
+    func is_decimalDigits_valid(value: String) {
+        let errors = Tick.validate(value, validations: [.is(.decimalDigits)])
+        #expect(errors.isEmpty)
+    }
+
+    @Test(arguments: ["12a45", "hello", "12.5", "12 34"])
+    func is_decimalDigits_invalid(value: String) {
+        let errors = Tick.validate(value, validations: [.is(.decimalDigits)])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test(arguments: ["hello", "WORLD", "Café"])
+    func is_letters_valid(value: String) {
+        let errors = Tick.validate(value, validations: [.is(.letters)])
+        #expect(errors.isEmpty)
+    }
+
+    @Test(arguments: ["hello1", "AB CD", "test!"])
+    func is_letters_invalid(value: String) {
+        let errors = Tick.validate(value, validations: [.is(.letters)])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func is_optionalEmpty_passes() {
+        let errors = Tick.validate("", validations: [.is(.decimalDigits)])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - In
+
+    @Test(arguments: ["DNI", "NIE", "Pasaporte"])
+    func in_validOption(value: String) {
+        let errors = Tick.validate(value, validations: [.in(["DNI", "NIE", "Pasaporte"])])
+        #expect(errors.isEmpty)
+    }
+
+    @Test(arguments: ["dni", "Otro", "X"])
+    func in_invalidOption(value: String) {
+        let errors = Tick.validate(value, validations: [.in(["DNI", "NIE", "Pasaporte"])])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func in_optionalEmpty_passes() {
+        // Empty + not required → skip
+        let errors = Tick.validate("", validations: [.in(["A", "B"])])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - Range
+
+    @Test(arguments: ["18", "30", "65"])
+    func range_validValue(value: String) {
+        let errors = Tick.validate(value, validations: [.range(18...65)])
+        #expect(errors.isEmpty)
+    }
+
+    @Test(arguments: ["17", "66", "0", "100"])
+    func range_invalidValue(value: String) {
+        let errors = Tick.validate(value, validations: [.range(18...65)])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func range_nonNumeric_fails() {
+        let errors = Tick.validate("abc", validations: [.range(1...100)])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func range_optionalEmpty_passes() {
+        let errors = Tick.validate("", validations: [.range(1...100)])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - RequiredIf
+
+    @Test func requiredIf_conditionTrue_emptyFails() {
+        let errors = Tick.validate("", validations: [.requiredIf { true }])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func requiredIf_conditionFalse_emptyPasses() {
+        let errors = Tick.validate("", validations: [.requiredIf { false }])
+        #expect(errors.isEmpty)
+    }
+
+    @Test func requiredIf_conditionTrue_filledPasses() {
+        let errors = Tick.validate("value", validations: [.requiredIf { true }])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - Contains
+
+    @Test func contains_present_passes() {
+        let errors = Tick.validate("https://linkedin.com/in/user", validations: [.contains("linkedin.com")])
+        #expect(errors.isEmpty)
+    }
+
+    @Test func contains_absent_fails() {
+        let errors = Tick.validate("https://facebook.com/user", validations: [.contains("linkedin.com")])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func contains_optionalEmpty_passes() {
+        let errors = Tick.validate("", validations: [.contains("test")])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - Prefix
+
+    @Test func prefix_correct_passes() {
+        let errors = Tick.validate("https://example.com", validations: [.prefix("https://")])
+        #expect(errors.isEmpty)
+    }
+
+    @Test func prefix_wrong_fails() {
+        let errors = Tick.validate("http://example.com", validations: [.prefix("https://")])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func prefix_optionalEmpty_passes() {
+        let errors = Tick.validate("", validations: [.prefix("https://")])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - Suffix
+
+    @Test func suffix_correct_passes() {
+        let errors = Tick.validate("document.pdf", validations: [.suffix(".pdf")])
+        #expect(errors.isEmpty)
+    }
+
+    @Test func suffix_wrong_fails() {
+        let errors = Tick.validate("document.doc", validations: [.suffix(".pdf")])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func suffix_optionalEmpty_passes() {
+        let errors = Tick.validate("", validations: [.suffix(".pdf")])
+        #expect(errors.isEmpty)
+    }
+
+    // MARK: - Decimal pattern
+
+    @Test(arguments: ["123", "0", "99999"])
+    func decimal_integers_valid(value: String) {
+        let errors = Tick.validate(value, validations: [.matches(.decimal)])
+        #expect(errors.isEmpty)
+    }
+
+    @Test(arguments: ["abc", "12.34.56", "1,2,3"])
+    func decimal_invalid(value: String) {
+        let errors = Tick.validate(value, validations: [.matches(.decimal)])
+        #expect(!errors.isEmpty)
+    }
+
+    @Test func decimal_optionalEmpty_passes() {
+        let errors = Tick.validate("", validations: [.matches(.decimal)])
+        #expect(errors.isEmpty)
+    }
 }

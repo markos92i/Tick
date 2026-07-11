@@ -37,11 +37,17 @@ public struct Tick {
         // Non-empty → run all rules except required
         return validations.filter { rule in
             switch rule {
-            case .required:     false
+            case .required:                 false
             case .requiredIf:               false
             case .min(let count):           value.count < count
             case .max(let count):           value.count > count
             case .matches(let pattern):     !pattern.matches(value)
+            case .is(let set):              !value.unicodeScalars.allSatisfy(set.contains)
+            case .in(let options):          !options.contains(value)
+            case .contains(let sub):        !value.contains(sub)
+            case .prefix(let pre):          !value.hasPrefix(pre)
+            case .suffix(let suf):          !value.hasSuffix(suf)
+            case .range(let range):         Int(value).map { !range.contains($0) } ?? true
             case .equalTo(let provider):    value != provider()
             case .iban:                     !IBANValidator.validate(value)
             case .nationalID(let country):  !IDValidator.validate(value, country: country)
