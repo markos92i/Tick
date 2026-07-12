@@ -16,7 +16,7 @@ public enum Pattern: Sendable {
     case custom(String)
 
     /// Tests if the value matches this validation pattern.
-    func matches(_ value: String) -> Bool {
+    public func matches(_ value: String) -> Bool {
         switch self {
         case .url:     return URLValidator.validate(value)
         case .numeric: return value.allSatisfy(\.isNumber)

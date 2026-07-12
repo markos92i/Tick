@@ -7,54 +7,59 @@ import Foundation
 
 public struct Tick {
 
-    /// Validates a value against a list of validation rules.
+    // MARK: - Generic engine
+
+    /// Validates a non-optional value against a list of rules.
     /// Returns only the rules that failed.
-    public static func validate(_ value: String, validations: [Rule]) -> [Rule] {
-        let isRequired = validations.contains { rule in
-            switch rule {
-            case .required: true
-            case .requiredIf(let condition): condition()
-            default: false
-            }
-        }
-
-        // Empty + not required → nothing to validate
-        if !isRequired && value.isEmpty { return [] }
-
-        // Empty + required → only required fails
-        if value.isEmpty {
-            // Return the same case that was passed in
-            let failedRule = validations.first { rule in
-                switch rule {
-                case .required: true
-                case .requiredIf: true
-                default: false
-                }
-            }
-            return [failedRule ?? .required]
-        }
-
-        // Non-empty → run all rules except required
-        return validations.filter { rule in
-            switch rule {
-            case .required:                 false
-            case .requiredIf:               false
-            case .min(let count):           value.count < count
-            case .max(let count):           value.count > count
-            case .matches(let pattern):     !pattern.matches(value)
-            case .is(let set):              !value.unicodeScalars.allSatisfy(set.contains)
-            case .in(let options):          !options.contains(value)
-            case .contains(let sub):        !value.contains(sub)
-            case .prefix(let pre):          !value.hasPrefix(pre)
-            case .suffix(let suf):          !value.hasSuffix(suf)
-            case .range(let range):         Int(value).map { !range.contains($0) } ?? true
-            case .equalTo(let provider):    value != provider()
-            case .iban:                     !IBANValidator.validate(value)
-            case .nationalID(let country):  !IDValidator.validate(value, country: country)
-            case .socialSecurity(let c):    !SocialSecurityValidator.validate(value, country: c)
-            case .postalCode(let c, let p): !PostalCodeValidator.validate(value, country: c, province: p)
-            case .custom(let predicate, _): predicate(value)
-            }
-        }
+    public static func validate<R: ValidationRule>(_ value: R.Value, rules: [R]) -> [R] {
+        rules.filter { !$0.passes(value) }
     }
+
+    /// Validates an optional value against a list of rules.
+    /// If `nil` and no rule is required → skip (no errors).
+    /// If `nil` and a required rule exists → return the required rules.
+    /// If non-nil → unwrap and evaluate all rules.
+    public static func validate<R: ValidationRule>(_ value: R.Value?, rules: [R]) -> [R] {
+        let hasRequired = rules.contains { $0.isRequired }
+        guard let value else {
+            return hasRequired ? rules.filter { $0.isRequired } : []
+        }
+        return rules.filter { !$0.passes(value) }
+    }
+
+    // MARK: - String convenience (with empty-skip logic)
+
+    /// Validates a String with skip-if-empty semantics.
+    /// If the value is empty and not required → no errors.
+    /// If the value is empty and required → returns the required rules.
+    /// Otherwise evaluates all rules.
+    public static func validate(_ value: String, rules: [StringRule]) -> [StringRule] {
+        let hasRequired = rules.contains { $0.isRequired }
+
+        if !hasRequired && value.isEmpty { return [] }
+
+        if value.isEmpty {
+            return rules.filter { $0.isRequired }
+        }
+
+        return rules.filter { !$0.passes(value) }
+    }
+
+    /// Validates a collection against collection rules.
+    /// If empty and not required → no errors.
+    /// If empty and required → returns the required rules.
+    /// Otherwise evaluates all rules against the full collection.
+    public static func validate<Element: Sendable>(collection: [Element], rules: [CollectionRule<Element>]) -> [CollectionRule<Element>] {
+        let hasRequired = rules.contains { $0.isRequired }
+
+        if !hasRequired && collection.isEmpty { return [] }
+
+        if collection.isEmpty {
+            return rules.filter { $0.isRequired }
+        }
+
+        return rules.filter { !$0.passes(collection) }
+    }
+
+
 }
