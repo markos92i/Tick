@@ -1,5 +1,5 @@
 //
-//  Rule.swift
+//  StringRule.swift
 //  Tick
 //
 

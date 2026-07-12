@@ -3,6 +3,8 @@
 //  Tick
 //
 
+import Foundation
+
 /// A validation rule for Bool fields.
 public enum BoolRule: ValidationRule, Sendable {
     /// Value must be `true`.

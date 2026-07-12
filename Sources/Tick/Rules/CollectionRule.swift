@@ -3,6 +3,8 @@
 //  Tick
 //
 
+import Foundation
+
 /// A validation rule for collections (arrays, sets, file lists, selections).
 /// Rules receive the full collection, enabling element-level inspection in `.check`.
 public enum CollectionRule<Element: Sendable>: ValidationRule, Sendable {

@@ -3,6 +3,8 @@
 //  Tick
 //
 
+import Foundation
+
 /// A validation rule for Int fields.
 public enum IntRule: ValidationRule, Sendable {
     /// Value must be greater than or equal to the given minimum.
